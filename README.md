@@ -12,7 +12,9 @@ This code is licensed under the Gnu General Public Licence (GPL V2). See License
 # How to build it
 
 Create a patch from the provided modified app_queue.c and the ORIG_app.queue.c (Asterisk 11.6-cert11)
-     diff $src/ORIG_app_queue.c $src/app_queue.c | patch /your/build/folder/asterisk/apps/app_queue.c -
+
+    diff $src/ORIG_app_queue.c $src/app_queue.c | patch /your/build/folder/asterisk/apps/app_queue.c -
+
 
 Compile asterisk as usual. The patch was created against asterisk 11.6 and only tested with this version. 
 
@@ -42,36 +44,36 @@ All parameters are copied to the lua functions. You do not get direct access to 
 Called on a queue_reload or asterisk startup.  For now the "queue" table only contains the "name" Attribute.
 No return value is expected.
 
-´´´lua
+```lua
 function init(queue) {
    ast_verbose("**** INIT QUEUE " .. queue.name)
 }
-´´´
+```
 
 ### cleanup
 
 Called on a queue_reload, if your queue is removed or on asterisk shutdown. 
 No return value is expected.
 
-´´´lua
+```lua
 function cleanup() {
   -- close resources...
 }
-´´´
+```
 
 ### enter_queue
 
 Like the method name imposes: a new waiter enters the queue.
 No return value is expected.
 
-´´´lua
+```lua
 function enter_queue(entry, vars) {
   -- entry is a table with some parameters of the queue_ent structure.
   -- "context","digits","prio","channel","uniqueid","queuename"
 
   -- vars is a table with all channel variables of the enqueued entry
 }
-´´´
+```
 
 ### calc_metric
 
@@ -84,7 +86,7 @@ Return value:
 
 You can use this callback to just filter out agents (return -1, 0) or directly calculate the final metrics.
 
-´´´lua
+```lua
 function calc_metric(member, entry, vars) {
   -- member is a table with some values from the queues "member" structure.
   -- "interface","membername","queuepos","penalty","paused","calls","dynamic","status"
@@ -97,7 +99,7 @@ function calc_metric(member, entry, vars) {
   -- zero means: consider this agent but use standard asterisk strategy for calling
   return 0
 }
-´´´
+```
 
 ## Mapped asterisk methods
 

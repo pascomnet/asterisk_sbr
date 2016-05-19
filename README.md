@@ -75,6 +75,33 @@ function enter_queue(entry, vars) {
 }
 ```
 
+### is_our_turn
+
+What if you want to implement a fair queuing or vip routing for entries?
+
+Is_our_turn is polled every 1 second for each waiting call in order to get a answer to the question "do i have to wait any longer?"
+
+Asterisk has here two default modes: 
+a) if auto_fill is enabled: distribute the top N calls if N Agents are available
+b) auto_fill disabled: distribute the top of the queue if one Agent is available.
+
+Return value:
+- -1 let asterisk decide. Same if the callback is not implemented.
+- 0 Wait longer
+- 1 Do not wait longer, try to distribute the call now.
+- 2 Expire this entry immediately. The channel leaves the queue and a QUEUE_TIMEOUT is signalled. 
+
+```lua
+function is_our_turn(entry) {
+  -- entry is a table with some parameters of the queue_ent structure.
+  -- "context","digits","prio","channel","uniqueid","queuename","pending","pos","start","expire","variables"
+  -- entry.variables is a table with all channel variables of the enqueued entry
+  
+  return -1
+}
+```
+
+
 ### calc_metric
 
 The workhorse of the routing script. Calculate the metrics for a given waiter and agent.
@@ -92,8 +119,9 @@ function calc_metric(member, entry, vars) {
   -- "interface","membername","queuepos","penalty","paused","calls","dynamic","status"
 
   -- entry is a table with some parameters of the queue_ent structure.
-  -- "context","digits","prio","channel","uniqueid","queuename"
-
+  -- "context","digits","prio","channel","uniqueid","queuename","pending","pos","start","expire","variables"
+  -- entry.variables is a table with all channel variables of the enqueued entry
+  
   -- vars is a table with all channel variables of the enqueued entry
 
   -- zero means: consider this agent but use standard asterisk strategy for calling
@@ -101,15 +129,43 @@ function calc_metric(member, entry, vars) {
 }
 ```
 
-## Mapped asterisk methods
+## Mapped methods
 
-You can use some asterisk functions directly in the lua script. 
+You can use some asterisk functions directly in the lua script. Also we add some convenience functions.
 
-### Output a verbose message
+### Output a verbose message in the cli
 
 - ast_verbose("Hello Asterisk")
+
+### Logging
+
+- ast_log(level, message) 
+-- level 0: DEBUG
+-- level 1: WARNING
+-- level 2: NOTICE
+-- level 3: WARNING
+-- level 4: ERROR
+-- level 5: VERBOSE
 
 ### Write something into the queuelog
 
 - ast_queue_log("myqueue","mobydick-1443625288.533","NONE","CUSTOM","LOGENTRY")
+
+### Get one member 
+
+-- get_member(interface)
+
+See calc_metric, parameter "member".
+
+### Get all members as table
+
+- get_members()
+
+You'll get a table with all members in the current queue. Each entry equals to the definition in calc_metric, parameter "member".
+
+### Get all entries as a table
+
+- get_entries()
+ 
+You'll get a table with all waiting calls in the current queue. See calc_metric, parameter "entry" for an explanation.
 

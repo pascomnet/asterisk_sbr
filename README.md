@@ -11,12 +11,12 @@ This code is licensed under the Gnu General Public Licence (GPL V2). See License
 
 # How to build it
 
-Create a patch from the provided modified app_queue.c and the ORIG_app.queue.c (Asterisk 11.6-cert11)
+Create a patch from the provided modified app_queue.c and the ORIG_app.queue.c (Asterisk 11.6-cert11 and 13.17.2)
 
     diff $src/ORIG_app_queue.c $src/app_queue.c | patch /your/build/folder/asterisk/apps/app_queue.c -
 
 
-Compile asterisk as usual. The patch was created against asterisk 11.6 and only tested with this version. 
+Compile asterisk as usual. The patch was created against asterisk 11.6 and 13.7.2 and only tested with these version.  The files to patch for 13 Asterisk version is includes in src/13
 
 # Development
 

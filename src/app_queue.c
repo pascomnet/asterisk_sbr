@@ -1738,22 +1738,22 @@ static int lua_ast_log(lua_State *L) {
 
   switch(level) {
       case 0:
-        ast_log(LOG_DEBUG, msg);
+        ast_log(LOG_DEBUG, "%s", msg);
         break;
       case 5:
-        ast_log(LOG_VERBOSE, msg);
+        ast_log(LOG_VERBOSE, "%s", msg);
         break;
       case 2:
-        ast_log(LOG_NOTICE, msg);
+        ast_log(LOG_NOTICE, "%s", msg);
         break;
       case 3:
-        ast_log(LOG_WARNING, msg);
+        ast_log(LOG_WARNING, "%s", msg);
         break;
       case 4:
-        ast_log(LOG_ERROR, msg);
+        ast_log(LOG_ERROR, "%s", msg);
         break;
       default:
-        ast_log(LOG_WARNING, msg);
+        ast_log(LOG_WARNING, "%s", msg);
   }
   return LUA_OK;
 }
@@ -1770,7 +1770,7 @@ static int lua_ast_queue_log(lua_State *L) {
   const char* agent = lua_tostring(L,3);
   const char* event = lua_tostring(L,4);
   const char* fmt = lua_tostring(L,5);
-  ast_queue_log(queuename,callid,agent,event,fmt);
+  ast_queue_log(queuename, callid, agent, event, "%s", fmt);
   return LUA_OK;
 }
 
@@ -1821,9 +1821,10 @@ static void lua_push_qmember(lua_State *L,struct call_queue *q, struct member *m
 }
 
 static void lua_push_channel_vars(lua_State *L, struct ast_channel *chan) {
+    struct ast_var_t *variables;
+
     // k/v table with channel variables
     lua_newtable(L);
-    struct ast_var_t *variables;
     ast_channel_lock(chan);
 	  AST_LIST_TRAVERSE(ast_channel_varshead(chan), variables, entries) {
       lua_pushstring(L,ast_var_value(variables));
@@ -3206,6 +3207,7 @@ static int join_queue(char *queuename, struct queue_ent *qe, enum queue_result *
 	int res = -1;
 	int pos = 0;
 	int inserted = 0;
+	lua_State *L;
 
 	if (!(q = find_load_queue_rt_friendly(queuename))) {
 		return res;
@@ -3267,7 +3269,7 @@ static int join_queue(char *queuename, struct queue_ent *qe, enum queue_result *
 		}
 
 
-        lua_State *L= qe->parent->luaState;
+        L = qe->parent->luaState;
         if (L) {
           lua_getglobal(L,"enter_queue");
           if( lua_isfunction(L,lua_gettop(L)) ) {
@@ -4958,6 +4960,8 @@ static int is_our_turn(struct queue_ent *qe)
 	int res;
 	int avl;
 	int idx = 0;
+	lua_State *L;
+	int lua_result;
 	/* This needs a lock. How many members are available to be served? */
 	ao2_lock(qe->parent);
 
@@ -4974,8 +4978,8 @@ static int is_our_turn(struct queue_ent *qe)
 		ch = ch->next;
 	}
 
-	lua_State *L= qe->parent->luaState;
-	int lua_result = -1;
+	L = qe->parent->luaState;
+	lua_result = -1;
     if (L) {
       lua_getglobal(L,"is_our_turn");
       if( lua_isfunction(L,lua_gettop(L)) ) {

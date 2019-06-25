@@ -539,7 +539,8 @@ ASTERISK_FILE_VERSION(__FILE__, "$Revision$")
 	</function>
 	<function name="QUEUE_MEMBER" language="en_US">
 		<synopsis>
-			Count number of members answering a queue.
+			Provides a count of queue members based on the provided criteria, or updates a
+			queue member's settings.
 		</synopsis>
 		<syntax>
 			<parameter name="queuename" required="false" />
@@ -3273,7 +3274,14 @@ static void rt_handle_member_record(struct call_queue *q, char *category, struct
 	const char *paused_str = ast_variable_retrieve(member_config, category, "paused");
 
 	if (ast_strlen_zero(rt_uniqueid)) {
-		ast_log(LOG_WARNING, "Realtime field uniqueid is empty for member %s\n", S_OR(membername, "NULL"));
+		ast_log(LOG_WARNING, "Realtime field 'uniqueid' is empty for member %s\n",
+			S_OR(membername, "NULL"));
+		return;
+	}
+
+	if (ast_strlen_zero(interface)) {
+		ast_log(LOG_WARNING, "Realtime field 'interface' is empty for member %s\n",
+			S_OR(membername, "NULL"));
 		return;
 	}
 
@@ -4334,6 +4342,7 @@ static int ring_entry(struct queue_ent *qe, struct callattempt *tmp, int *busies
 	char tech[256];
 	char *location;
 	const char *macrocontext, *macroexten;
+	struct ast_format_cap *nativeformats;
 	RAII_VAR(struct ast_json *, blob, NULL, ast_json_unref);
 
 	/* on entry here, we know that tmp->chan == NULL */
@@ -4350,8 +4359,13 @@ static int ring_entry(struct queue_ent *qe, struct callattempt *tmp, int *busies
 		location = "";
 	}
 
+	ast_channel_lock(qe->chan);
+	nativeformats = ao2_bump(ast_channel_nativeformats(qe->chan));
+	ast_channel_unlock(qe->chan);
+
 	/* Request the peer */
-	tmp->chan = ast_request(tech, ast_channel_nativeformats(qe->chan), NULL, qe->chan, location, &status);
+	tmp->chan = ast_request(tech, nativeformats, NULL, qe->chan, location, &status);
+	ao2_cleanup(nativeformats);
 	if (!tmp->chan) {			/* If we can't, just go on to the next call */
 		ao2_lock(qe->parent);
 		qe->parent->rrpos++;

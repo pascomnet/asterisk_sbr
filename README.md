@@ -6,7 +6,7 @@ This patch adds the possibility to influence the queue routing by writing a lua 
 
 # Credits and license
 
-See our mobydick pbx at http://www.pascom.net for a fully integrated asterisk solution with skill based routing.
+See our pascom pbx at http://www.pascom.net for a fully integrated asterisk solution with skill based routing.
 This code is licensed under the Gnu General Public Licence (GPL V2). See License File.
 
 # How to build it

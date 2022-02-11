@@ -11,9 +11,9 @@ This code is licensed under the Gnu General Public Licence (GPL V2). See License
 
 # How to build it
 
-Create a patch from the provided modified app_queue.c and the ORIG_app.queue.c (Asterisk 13.25.0)
+Create a patch from the provided modified app_queue__VERSION.c and the app_queue__VERSION__ORIG.c (original src from Digium).
 
-    diff $src/ORIG_app_queue.c $src/app_queue.c | patch /your/build/folder/asterisk/apps/app_queue.c -
+    diff $src/app_queue__VERSION__ORIG.c $src/app_queue__VERSION.c | patch /your/build/folder/asterisk/apps/app_queue.c -
 
 **Check git branches to find patches for other asterisk versions.**
 
